@@ -2,12 +2,41 @@
   "welcome": "Welcome",
   "nav": {
     "login": "Login",
-    "main": "Main"
+    "main": "Main",
+    "404": "Page not found",
+    "500": "Server error"
+  },
+  "label": {
+    "login": "Login",
+    "password": "Password"
   },
   "btn": {
     "signIn": "Sign in"
   },
   "error": {
-    "errorDataLater": "Data processing error. Please try re-logging into the app or trying again later."
+    "userAlreadyExists": "User already exists.",
+    "userIncorrect": "Incorrect login or password.",
+    "errorPasswordTooShort": "Password is too short.",
+    "invalidOrExpiredCode": "The code is invalid or expired.",
+    "tooManyCodeAttempts": "Too many code attempts.",
+    "telegramStartBotRequired": "Please start the Telegram bot first.",
+    "verificationSendFailed": "Failed to send verification code.",
+    "verificationCooldown": "Please wait before requesting another code.",
+    "tooManyVerificationRequests": "Too many verification requests.",
+    "typeContactAndCodeRequired": "Contact and code are required.",
+    "invalidRegistrationSession": "Invalid registration session.",
+    "invalidRegistrationToken": "Invalid registration token.",
+    "registrationSessionExpired": "Registration session expired.",
+    "telegramBotUsernameRequired": "Telegram bot username is required.",
+    "errorInvalidContactOrPassword": "Invalid contact or password.",
+    "errorDataLater": "Data processing error. Please try re-logging into the app or trying again later.",
+    "errorPasswordNum": "Password must contain at least {num} characters.",
+    "errorEmailAddress": "Enter a valid email address.",
+    "errorTelegramName": "Enter a valid Telegram username.",
+    "errorPasswordNoMatch": "Passwords do not match.",
+    "invalidFormat": "Invalid format.",
+    "requiredField": "This field is required.",
+    "errorInvalidEmailOrTelegram": "Enter a valid email or Telegram username.",
+    "unknown": "Unknown error."
   }
 }

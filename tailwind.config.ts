@@ -15,8 +15,7 @@ export default {
       },
       spacing: {},
       fontFamily: {
-        sans: ['Graphik', 'sans-serif'],
-        serif: ['Merriweather', 'serif']
+        sans: ['Roboto', 'Arial', 'sans-serif']
       },
       fontSize: {
         'brand-font-size': 'var(--font-size-brand)'

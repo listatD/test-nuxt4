@@ -6,10 +6,7 @@ const SITE_NAME = process.env.NUXT_SITE_NAME || ''
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: {
-    enabled: false,
-    timeline: {
-      enabled: true
-    }
+    enabled: false
   },
   modules: [
     '@pinia/nuxt',
@@ -17,7 +14,7 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@vueuse/nuxt',
     '@nuxt/icon',
-    '@nuxt/image',
+    '@nuxt/image'
   ],
   icon: {
     serverBundle: 'remote'
@@ -34,7 +31,7 @@ export default defineNuxtConfig({
       charset: 'utf-8',
       titleTemplate: `%s | ${SITE_NAME}`,
       title: 'Welcome',
-      link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg', id: 'dynamic-favicon' }]
+      link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]
     }
   },
   runtimeConfig: {
@@ -49,7 +46,7 @@ export default defineNuxtConfig({
     strategy: 'prefix_except_default',
     baseUrl: SITE_URL,
     locales: i18nLocales,
-    defaultLocale: 'en',
+    defaultLocale: 'en'
     // detectBrowserLanguage: {
     //   useCookie: true,
     //   cookieKey: 'locale',
