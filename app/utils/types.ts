@@ -43,7 +43,26 @@ export interface BaseInputProps {
   disabled?: boolean
   name?: string
   autocomplete?: string
+  class?: string
+  controlClass?: string
+  inputClass?: string
   rules?: Array<(val: any) => string | boolean>
+}
+
+export interface BaseSelectOption {
+  label: string
+  value: string | number
+}
+
+export interface BaseSelectProps {
+  modelValue: string | number | null
+  options?: BaseSelectOption[]
+  label?: string
+  placeholder?: string
+  size?: BaseSize
+  error?: string
+  disabled?: boolean
+  name?: string
 }
 
 export interface BaseCheckboxProps {
@@ -109,8 +128,44 @@ export interface BaseModalProps {
 }
 
 export interface LoginForm {
-  contact: string
-  password: string
-  serverError: string
-  isPasswordShow: boolean
+  username: string
+  phone: string
 }
+
+export interface LoginPayload {
+  username: string
+  phone: string
+}
+
+export interface JsonPlaceholderUser {
+  id: number
+  name: string
+  username: string
+  email: string
+  phone: string
+  website: string
+  address: {
+    street: string
+    suite: string
+    city: string
+    zipcode: string
+    geo: {
+      lat: string
+      lng: string
+    }
+  }
+  company: {
+    name: string
+    catchPhrase: string
+    bs: string
+  }
+}
+
+export interface JsonPlaceholderTodo {
+  userId: number
+  id: number
+  title: string
+  completed: boolean
+}
+
+export type TodoStatusFilter = 'all' | 'completed' | 'uncompleted' | 'favorites'

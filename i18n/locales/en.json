@@ -7,36 +7,58 @@
     "500": "Server error"
   },
   "label": {
-    "login": "Login",
-    "password": "Password"
+    "username": "Username",
+    "phoneNumber": "Phone Number",
+    "email": "Email",
+    "company": "Company",
+    "userId": "User ID",
+    "title": "Title",
+    "searchByTitle": "Search by title"
   },
   "btn": {
-    "signIn": "Sign in"
+    "login": "Login",
+    "loading": "Loading...",
+    "logout": "Logout",
+    "add": "Add",
+    "goBack": "Go back"
+  },
+  "page": {
+    "loginTitle": "description",
+    "loginDescription": "description",
+    "userProfile": "User profile",
+    "createTodo": "Create todo",
+    "filters": "Filters",
+    "todoList": "Todo list"
+  },
+  "filter": {
+    "all": "All",
+    "completed": "Completed",
+    "uncompleted": "Uncompleted",
+    "favorites": "Favorites",
+    "allUsers": "All Users"
+  },
+  "state": {
+    "loadingTodos": "Loading todos...",
+    "noTodosFound": "No todos found",
+    "tasks": "{count} tasks",
+    "user": "User {id}"
+  },
+  "aria": {
+    "addToFavorites": "Add to favorites",
+    "removeFromFavorites": "Remove from favorites"
   },
   "error": {
-    "userAlreadyExists": "User already exists.",
-    "userIncorrect": "Incorrect login or password.",
-    "errorPasswordTooShort": "Password is too short.",
-    "invalidOrExpiredCode": "The code is invalid or expired.",
-    "tooManyCodeAttempts": "Too many code attempts.",
-    "telegramStartBotRequired": "Please start the Telegram bot first.",
-    "verificationSendFailed": "Failed to send verification code.",
-    "verificationCooldown": "Please wait before requesting another code.",
-    "tooManyVerificationRequests": "Too many verification requests.",
-    "typeContactAndCodeRequired": "Contact and code are required.",
-    "invalidRegistrationSession": "Invalid registration session.",
-    "invalidRegistrationToken": "Invalid registration token.",
-    "registrationSessionExpired": "Registration session expired.",
-    "telegramBotUsernameRequired": "Telegram bot username is required.",
-    "errorInvalidContactOrPassword": "Invalid contact or password.",
     "errorDataLater": "Data processing error. Please try re-logging into the app or trying again later.",
-    "errorPasswordNum": "Password must contain at least {num} characters.",
-    "errorEmailAddress": "Enter a valid email address.",
-    "errorTelegramName": "Enter a valid Telegram username.",
-    "errorPasswordNoMatch": "Passwords do not match.",
     "invalidFormat": "Invalid format.",
     "requiredField": "This field is required.",
-    "errorInvalidEmailOrTelegram": "Enter a valid email or Telegram username.",
+    "lettersOnly": "Only letters, dots, and underscores allowed.",
+    "phoneSymbolsOnly": "Only numbers and phone symbols allowed.",
+    "phoneMinLength": "Phone number must be at least {count} characters.",
+    "phoneMaxLength": "Phone number must be no more than {count} characters.",
+    "login": "login error",
+    "todosLoadFailed": "Failed to load todos.",
+    "createTodoFields": "Enter User ID and Title.",
+    "createTodoFailed": "Failed to create todo.",
     "unknown": "Unknown error."
   }
 }

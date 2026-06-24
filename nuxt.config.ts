@@ -22,7 +22,7 @@ export default defineNuxtConfig({
   tailwindcss: {
     cssPath: '@/assets/styles/main.scss',
     exposeConfig: true,
-    viewer: true
+    viewer: false
   },
   app: {
     rootId: 'app',

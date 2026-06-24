@@ -2,7 +2,6 @@ import { i18nLocales } from '@/../i18n/languages-list'
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
   const mainStore = useMainStore()
-  const userService = useUserService()
   const localePath = useLocalePath()
 
   const localeRoots = new Set(i18nLocales.map(l => `/${l.code}`))
@@ -28,15 +27,5 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   if (!isPublic && !mainStore.accessToken) {
     return navigateTo(localePath(defAuthPage.login.name))
-  }
-
-  const hasUserInfo = mainStore.userInfo && Object.keys(mainStore.userInfo).length > 0
-
-  if (mainStore.accessToken && !hasUserInfo) {
-    const { data, error } = await userService.getUser()
-
-    if (!error.value && data.value) {
-      mainStore.setUserInfo((data.value as any).user || data.value)
-    }
   }
 })

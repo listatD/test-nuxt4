@@ -1,8 +1,13 @@
-import type { ServiceResponse, RunAsyncOptions, FetchError } from '@/utils/types'
+import type {
+  FetchError,
+  JsonPlaceholderUser,
+  LoginPayload,
+  RunAsyncOptions,
+  ServiceResponse
+} from '@/utils/types'
 
 export const useUserService = () => {
   const nuxtApp = useNuxtApp()
-  const mainStore = useMainStore()
 
   const handleError = (err: FetchError, options?: RunAsyncOptions): string => {
     const isFatal = options?.errorOptions?.fatal ?? false
@@ -63,21 +68,28 @@ export const useUserService = () => {
     }
   }
 
+  const normalizePhone = (value: string) => value.replace(/\s+/g, '').trim()
+
   return {
-    async postLogin(values: any, options?: RunAsyncOptions) {
-      return runTask(
-        () =>
-          nuxtApp.$apiBase<any>('/auth/login', {
-            method: 'POST',
-            body: values
-          }),
-        options
-      )
+    async getUsers(options?: RunAsyncOptions) {
+      return runAsyncData('users', () => nuxtApp.$apiBase<JsonPlaceholderUser[]>('users'), options)
     },
 
-    async getUser(options?: RunAsyncOptions) {
-      const tokenKey = mainStore.accessToken || 'tokenKey'
-      return runAsyncData(`auth-me-${tokenKey}`, () => nuxtApp.$apiBase<any>('/auth/me'), options)
-    },
+    async postLogin(values: LoginPayload, options?: RunAsyncOptions) {
+      return runTask<JsonPlaceholderUser>(async () => {
+        const users = await nuxtApp.$apiBase<JsonPlaceholderUser[]>('users')
+        const user = users.find(
+          item =>
+            item.username.toLowerCase() === values.username.trim().toLowerCase() &&
+            normalizePhone(item.phone) === normalizePhone(values.phone)
+        )
+
+        if (!user) {
+          throw { message: 'errorLogin' }
+        }
+
+        return user
+      }, options)
+    }
   }
 }

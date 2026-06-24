@@ -1,8 +1,6 @@
 const loginDefaults: LoginForm = {
-  contact: '',
-  password: '',
-  serverError: '',
-  isPasswordShow: false
+  username: '',
+  phone: ''
 }
 
 export const useLoginForm = () => {

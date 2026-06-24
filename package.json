@@ -7,6 +7,7 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
+    "test": "vitest run",
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
@@ -27,9 +28,12 @@
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
+    "@vue/test-utils": "^2.4.11",
+    "happy-dom": "^20.10.6",
     "prettier": "3.4.2",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "sass": "^1.96.0"
+    "sass": "^1.96.0",
+    "vitest": "^4.1.9"
   },
   "overrides": {
     "zod": "^4.3.6"

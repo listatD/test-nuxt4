@@ -45,10 +45,10 @@ const sizeClass = computed(() => {
     case defSize.sm.val:
       return 'min-h-8 min-w-8 text-sm'
     case defSize.lg.val:
-      return 'min-h-14 min-w-14 text-lg'
+      return 'min-h-14 min-w-14 text-[21px]'
     case defSize.md.val:
     default:
-      return 'min-h-12 min-w-12 text-base'
+      return 'min-h-12 min-w-12 text-[17px]'
   }
 })
 
@@ -92,7 +92,7 @@ const onClick = (e: MouseEvent) => {
     :type="!to && !href ? type : undefined"
     :class="
       twMerge(
-        'inline-flex items-center justify-center gap-2 border font-medium outline-none transition-all duration-300 focus:ring-2 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50',
+        'inline-flex items-center justify-center gap-2 border font-semibold outline-none transition-all duration-300 focus:ring-2 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50',
         variantClass,
         sizeClass,
         roundedSizeClass,

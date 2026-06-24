@@ -1,5 +1,10 @@
 <script setup lang="ts">
+import { twMerge } from 'tailwind-merge'
 import type { BaseInputProps } from '@/utils/types'
+
+defineOptions({
+  inheritAttrs: false
+})
 
 const {
   type = 'text',
@@ -9,7 +14,10 @@ const {
   error,
   disabled,
   name,
-  autocomplete
+  autocomplete,
+  class: className,
+  controlClass,
+  inputClass
 } = defineProps<Omit<BaseInputProps, 'modelValue'>>()
 
 const model = defineModel<BaseInputProps['modelValue']>({ default: '' })
@@ -31,10 +39,10 @@ const sizeTextClass = computed(() => {
     case defSize.sm.val:
       return 'text-sm'
     case defSize.lg.val:
-      return 'text-lg'
+      return 'text-[21px]'
     case defSize.md.val:
     default:
-      return 'text-base'
+      return 'text-[17px]'
   }
 })
 
@@ -53,21 +61,30 @@ const sizeTextErrorClass = computed(() => {
 
 <template>
   <div
-    class="flex w-full flex-col"
-    :class="[sizeTextClass, { 'pointer-events-none opacity-60': disabled }]"
+    :class="
+      twMerge(
+        'flex w-full flex-col',
+        sizeTextClass,
+        disabled ? 'pointer-events-none opacity-60' : '',
+        className
+      )
+    "
   >
     <div v-if="label" class="mb-1 block">
       {{ label }}
     </div>
 
     <div
-      class="relative flex rounded-md border transition-all duration-300 focus-within:ring-2"
-      :class="[
-        sizeHeightClass,
-        error
-          ? 'border-red-500/50 bg-red-50/10 ring-1 ring-red-500/50'
-          : 'border-gray-200/100 bg-gray-200/10 focus-within:border-transparent focus-within:ring-brand-primary'
-      ]"
+      :class="
+        twMerge(
+          'relative flex rounded-md border transition-all duration-300 focus-within:ring-2',
+          sizeHeightClass,
+          error
+            ? 'border-red-500/50 bg-red-50/10 ring-1 ring-red-500/50'
+            : 'border-gray-200/100 bg-gray-200/10 focus-within:border-transparent focus-within:ring-brand-primary',
+          controlClass
+        )
+      "
     >
       <span v-if="$slots.before" class="flex items-center">
         <slot name="before" />
@@ -79,7 +96,13 @@ const sizeTextErrorClass = computed(() => {
         :placeholder="placeholder"
         :disabled="disabled"
         :autocomplete="autocomplete"
-        class="h-full w-full rounded-md bg-transparent px-4 py-1 outline-none"
+        v-bind="$attrs"
+        :class="
+          twMerge(
+            'h-full w-full rounded-md bg-transparent px-4 py-1 font-normal outline-none',
+            inputClass
+          )
+        "
       />
       <span v-if="$slots.after" class="flex items-center">
         <slot name="after" />

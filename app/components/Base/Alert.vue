@@ -32,7 +32,7 @@ const currentIcon = computed(() => icons[type])
     "
   >
     <div class="overflow-hidden">
-      <div :class="twMerge('flex items-start gap-3 rounded-md border p-3 text-sm', currentStyle)">
+      <div :class="twMerge('flex items-start gap-3 rounded-md border p-3 text-base', currentStyle)">
         <Icon :name="currentIcon" class="h-5 w-5 shrink-0" />
         <div class="flex-1">
           <slot>{{ message }}</slot>

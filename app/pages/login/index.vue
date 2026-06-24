@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { z } from 'zod'
 import { useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
+import { loginFormTypedSchema } from '@/utils/schemaZod'
 
 definePageMeta({
   layout: defLayoutPage.blank.name,
@@ -13,146 +12,131 @@ const mainStore = useMainStore()
 const userService = useUserService()
 const localePath = useLocalePath()
 const { form, reset } = useLoginForm()
-const isLoad = ref(false)
 
-const createFormField = <K extends keyof typeof form.value>(key: K) =>
-  computed({
-    get: () => form.value[key],
-    set: val => {
-      form.value[key] = val
-    }
-  })
+const errorMessage = ref('')
+const hasSubmitted = ref(false)
+const isLoading = ref(false)
+const fieldOptions = () => ({
+  validateOnModelUpdate: hasSubmitted.value
+})
 
-const serverError = createFormField('serverError')
-const isPasswordShow = createFormField('isPasswordShow')
-
-const schema = computed(() =>
-  toTypedSchema(
-    z.object({
-      contact: z
-        .string()
-        .nonempty()
-        .refine(
-          data => {
-            if (!data) return true
-
-            const isEmail = z.string().pipe(z.email()).safeParse(data).success
-            const isTelegram = new RegExp(defRegex.telegram.val).test(data)
-
-            return isEmail || isTelegram
-          },
-          {
-            path: ['invalidEmailOrTelegram']
-          }
-        ),
-      password: z.string().nonempty()
-    })
-  )
-)
-
-const { errors, defineField, handleSubmit, isSubmitting } = useForm({
-  validationSchema: schema,
+const { errors, defineField, handleSubmit, validate } = useForm({
+  validationSchema: loginFormTypedSchema,
   initialValues: form.value
 })
 
-const fieldOpts = reactive({
-  validateOnModelUpdate: false
-})
-
-const [contact] = defineField('contact', fieldOpts)
-const [password] = defineField('password', fieldOpts)
+const [usernameField] = defineField('username', fieldOptions)
+const [phoneField] = defineField('phone', fieldOptions)
 
 const enableValidateOnModelUpdate = () => {
-  fieldOpts.validateOnModelUpdate = true
+  hasSubmitted.value = true
 }
 
-watch(contact, val => {
-  form.value.contact = val || ''
-})
-watch(password, val => {
-  form.value.password = val || ''
+const username = computed({
+  get: () => usernameField.value,
+  set: value => {
+    usernameField.value = value
+    form.value.username = value || ''
+    if (hasSubmitted.value) {
+      nextTick(() => validate())
+    }
+  }
 })
 
-const togglePassword = () => {
-  isPasswordShow.value = !isPasswordShow.value
-}
+const phone = computed({
+  get: () => phoneField.value,
+  set: value => {
+    phoneField.value = value
+    form.value.phone = value || ''
+    if (hasSubmitted.value) {
+      nextTick(() => validate())
+    }
+  }
+})
 
 const onLogin = handleSubmit(
   async values => {
     enableValidateOnModelUpdate()
-    serverError.value = ''
-    isLoad.value = true
+    errorMessage.value = ''
+    isLoading.value = true
 
     const { data, pending, error } = await userService.postLogin({
-      contact: values.contact,
-      password: values.password
+      username: values.username,
+      phone: values.phone
     })
 
+    isLoading.value = pending.value
+
     if (!error.value && data.value) {
-      mainStore.setAccessToken({ token: data.value.token, rt: data.value.rt })
+      mainStore.setUserInfo(data.value)
+      mainStore.setAccessToken({ token: String(data.value.id) })
+      reset()
       await navigateTo(localePath(defUserPage.main.name))
     } else {
-      serverError.value = error.value
+      errorMessage.value = error.value
     }
 
-    isLoad.value = false
+    isLoading.value = false
   },
   () => {
     enableValidateOnModelUpdate()
   }
 )
-
-onBeforeRouteLeave(to => {
-  const isRoute = to.name?.toString().includes(defAuthPage.login.name)
-  if (!isRoute) {
-    reset()
-  }
-})
 </script>
 
 <template>
-  <div class="flex flex-1 items-center justify-center">
-    <div class="w-full max-w-md rounded-lg bg-white p-8 shadow-md ring-1 ring-black ring-opacity-5">
-      <h2 class="mb-6 text-center text-3xl font-bold">{{ $t('nav.login') }}</h2>
-      <form @submit.prevent="onLogin" class="space-y-4" novalidate>
+  <main class="bg-auth-page text-auth-text flex flex-1 items-center justify-center p-6">
+    <section
+      class="bg-auth-card w-full max-w-[447px] overflow-hidden rounded"
+      aria-labelledby="login-title"
+    >
+      <header
+        class="border-auth-border bg-auth-header flex min-h-[51px] items-center justify-center border-b"
+      >
+        <h1 id="login-title" class="text-auth-title m-0 text-[17px] font-normal leading-tight">
+          {{ $t('page.loginTitle') }}
+        </h1>
+      </header>
+
+      <form class="flex flex-col gap-5 px-6 pb-[30px] pt-[17px]" @submit.prevent="onLogin">
+        <p class="text-auth-description m-0 text-[15px] leading-tight">
+          {{ $t('page.loginDescription') }}
+        </p>
+
         <BaseInput
-          v-model="contact"
-          :label="$t('label.login')"
-          name="contact"
+          v-model="username"
+          type="text"
+          :placeholder="$t('label.username')"
+          id="login-username"
+          name="username"
           autocomplete="username"
-          size="lg"
-          :error="errors.contact"
+          control-class="h-[41px] rounded border-0 bg-white focus-within:ring-brand-primary/35"
+          input-class="rounded px-2.5 text-auth-text placeholder:text-auth-text"
+          :error="errors.username"
         />
 
         <BaseInput
-          v-model="password"
-          :type="isPasswordShow ? 'text' : 'password'"
-          :label="$t('label.password')"
-          name="password"
-          autocomplete="current-password"
-          size="lg"
-          :error="errors.password"
-        >
-          <template #after>
-            <BaseButton
-              variant="text"
-              size="lg"
-              :icon="isPasswordShow ? 'mdi:eye' : 'mdi:eye-off'"
-              @click="togglePassword"
-              @mousedown.prevent
-            /> </template
-        ></BaseInput>
+          v-model="phone"
+          type="tel"
+          :placeholder="$t('label.phoneNumber')"
+          id="login-phone"
+          name="phone"
+          autocomplete="tel"
+          control-class="h-[41px] rounded border-0 bg-white focus-within:ring-brand-primary/35"
+          input-class="rounded px-2.5 text-auth-text placeholder:text-auth-text"
+          :error="errors.phone"
+        />
 
         <BaseAlert
           type="error"
-          :show="!!serverError"
-          :message="serverError ? $t(serverError) : ''"
+          :show="!!errorMessage"
+          :message="errorMessage ? $t(errorMessage) : ''"
         />
 
-        <BaseButton variant="primary" :loading="isLoad" block size="lg" type="submit">
-          {{ $t('btn.signIn') }}
+        <BaseButton type="submit" block :loading="isLoading" class="min-h-[41px] rounded">
+          {{ isLoading ? $t('btn.loading') : $t('btn.login') }}
         </BaseButton>
       </form>
-    </div>
-  </div>
+    </section>
+  </main>
 </template>

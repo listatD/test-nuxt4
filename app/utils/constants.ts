@@ -44,5 +44,6 @@ export const defHttpStatus = {
 } as const
 
 export const defRegex = {
-  telegram: { val: /^@[a-zA-Z0-9_]{5,32}$/ }
+  username: { val: /^[\p{L}._]+$/u },
+  phone: { val: /^[0-9+\s().-]{7,18}(?:\sx[0-9]{1,6})?$/u }
 } as const
