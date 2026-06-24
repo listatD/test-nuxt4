@@ -39,6 +39,7 @@
   },
   "state": {
     "loadingTodos": "Loading todos...",
+    "noData": "No data",
     "noTodosFound": "No todos found",
     "tasks": "{count} tasks",
     "user": "User {id}"

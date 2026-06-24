@@ -43,6 +43,17 @@ export const defHttpStatus = {
   s500: 500
 } as const
 
+export const defTodoStatusFilter = {
+  all: { val: 'all' },
+  completed: { val: 'completed' },
+  uncompleted: { val: 'uncompleted' },
+  favorites: { val: 'favorites' }
+} as const
+
+export const defTodoPagination = {
+  perPage: { val: 10 }
+} as const
+
 export const defRegex = {
   username: { val: /^[\p{L}._]+$/u },
   phone: { val: /^[0-9+\s().-]{7,18}(?:\sx[0-9]{1,6})?$/u }

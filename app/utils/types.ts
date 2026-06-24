@@ -13,8 +13,8 @@ export interface ServiceResponse<T> {
   error: Ref<string>
 }
 
-export interface RunAsyncOptions {
-  asyncOptions?: AsyncDataOptions<any>
+export interface RunAsyncOptions<T = any> {
+  asyncOptions?: AsyncDataOptions<T>
   errorOptions?: { fatal?: boolean }
 }
 
@@ -63,6 +63,13 @@ export interface BaseSelectProps {
   error?: string
   disabled?: boolean
   name?: string
+  class?: string
+}
+
+export interface BasePaginationProps {
+  modelValue: number
+  totalItems: number
+  perPage: number
 }
 
 export interface BaseCheckboxProps {
@@ -168,4 +175,5 @@ export interface JsonPlaceholderTodo {
   completed: boolean
 }
 
-export type TodoStatusFilter = 'all' | 'completed' | 'uncompleted' | 'favorites'
+export type TodoStatusFilter =
+  (typeof defTodoStatusFilter)[keyof typeof defTodoStatusFilter]['val']

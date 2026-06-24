@@ -26,7 +26,7 @@ export const useUserService = () => {
 
   const runTask = async <T>(
     task: () => Promise<T>,
-    options?: RunAsyncOptions
+    options?: RunAsyncOptions<T>
   ): Promise<ServiceResponse<T>> => {
     const data = ref<T | null>(null) as Ref<T | null>
     const pending = ref(true)
@@ -47,7 +47,7 @@ export const useUserService = () => {
   const runAsyncData = async <T>(
     key: string,
     task: () => Promise<T>,
-    options?: RunAsyncOptions
+    options?: RunAsyncOptions<T>
   ) => {
     const result = await useAsyncData<T>(key, task, {
       server: true,
@@ -72,7 +72,7 @@ export const useUserService = () => {
   const normalizePhone = (value: string) => value.replace(/\s+/g, '').trim()
 
   return {
-    async getTodos(options?: RunAsyncOptions) {
+    async getTodos(options?: RunAsyncOptions<JsonPlaceholderTodo[]>) {
       return runAsyncData<JsonPlaceholderTodo[]>(
         'todos',
         async () => {
@@ -88,7 +88,7 @@ export const useUserService = () => {
 
     async postTodo(
       values: Pick<JsonPlaceholderTodo, 'userId' | 'title' | 'completed'>,
-      options?: RunAsyncOptions
+      options?: RunAsyncOptions<JsonPlaceholderTodo>
     ) {
       return runTask<JsonPlaceholderTodo>(async () => {
         try {
@@ -102,7 +102,7 @@ export const useUserService = () => {
       }, options)
     },
 
-    async postLogin(values: LoginPayload, options?: RunAsyncOptions) {
+    async postLogin(values: LoginPayload, options?: RunAsyncOptions<JsonPlaceholderUser>) {
       return runTask<JsonPlaceholderUser>(async () => {
         const users = await nuxtApp.$apiBase<JsonPlaceholderUser[]>('users')
         const user = users.find(
