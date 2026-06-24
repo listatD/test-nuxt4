@@ -1,5 +1,6 @@
 import type {
   FetchError,
+  JsonPlaceholderTodo,
   JsonPlaceholderUser,
   LoginPayload,
   RunAsyncOptions,
@@ -71,8 +72,34 @@ export const useUserService = () => {
   const normalizePhone = (value: string) => value.replace(/\s+/g, '').trim()
 
   return {
-    async getUsers(options?: RunAsyncOptions) {
-      return runAsyncData('users', () => nuxtApp.$apiBase<JsonPlaceholderUser[]>('users'), options)
+    async getTodos(options?: RunAsyncOptions) {
+      return runAsyncData<JsonPlaceholderTodo[]>(
+        'todos',
+        async () => {
+          try {
+            return await nuxtApp.$apiBase<JsonPlaceholderTodo[]>('todos')
+          } catch {
+            throw { message: 'errorTodosLoadFailed' }
+          }
+        },
+        options
+      )
+    },
+
+    async postTodo(
+      values: Pick<JsonPlaceholderTodo, 'userId' | 'title' | 'completed'>,
+      options?: RunAsyncOptions
+    ) {
+      return runTask<JsonPlaceholderTodo>(async () => {
+        try {
+          return await nuxtApp.$apiBase<JsonPlaceholderTodo>('todos', {
+            method: 'POST',
+            body: values
+          })
+        } catch {
+          throw { message: 'errorCreateTodoFailed' }
+        }
+      }, options)
     },
 
     async postLogin(values: LoginPayload, options?: RunAsyncOptions) {

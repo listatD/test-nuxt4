@@ -6,17 +6,25 @@ definePageMeta({
 })
 
 const mainStore = useMainStore()
+const userService = useUserService()
 const localePath = useLocalePath()
+const {
+  data: todosData,
+  pending: isTodosLoading,
+  error: todosError
+} = await userService.getTodos({
+  asyncOptions: {
+    default: () => []
+  }
+})
 
-const todos = ref<JsonPlaceholderTodo[]>([])
+const todos = ref<JsonPlaceholderTodo[]>(todosData.value || [])
 const favoriteIds = ref<number[]>([])
 const statusFilter = ref<TodoStatusFilter>('all')
 const userFilter = ref('all')
 const search = ref('')
 const newTodoUserId = ref('')
 const newTodoTitle = ref('')
-const isTodosLoading = ref(true)
-const todosError = ref('')
 const createError = ref('')
 const panelClass = 'rounded-lg border border-slate-200 bg-white p-4 sm:p-6'
 const titleClass = 'm-0 text-2xl font-bold leading-tight text-slate-900'
@@ -76,25 +84,16 @@ const saveFavorites = () => {
   window.localStorage.setItem('favoriteTodoIds', JSON.stringify(favoriteIds.value))
 }
 
+watch(todosData, value => {
+  todos.value = value || []
+})
+
 const toggleFavorite = (todoId: number) => {
   favoriteIds.value = favoriteIds.value.includes(todoId)
     ? favoriteIds.value.filter(id => id !== todoId)
     : [...favoriteIds.value, todoId]
 
   saveFavorites()
-}
-
-const loadTodos = async () => {
-  isTodosLoading.value = true
-  todosError.value = ''
-
-  try {
-    todos.value = await $fetch<JsonPlaceholderTodo[]>('https://jsonplaceholder.typicode.com/todos')
-  } catch {
-    todosError.value = mapError({ message: 'errorTodosLoadFailed' })
-  } finally {
-    isTodosLoading.value = false
-  }
 }
 
 const addTodo = async () => {
@@ -108,22 +107,20 @@ const addTodo = async () => {
     return
   }
 
-  try {
-    const todo = await $fetch<JsonPlaceholderTodo>('https://jsonplaceholder.typicode.com/todos', {
-      method: 'POST',
-      body: {
-        userId,
-        title,
-        completed: false
-      }
-    })
+  const { data, error } = await userService.postTodo({
+    userId,
+    title,
+    completed: false
+  })
 
-    todos.value = [{ ...todo, id: Date.now(), userId, title, completed: false }, ...todos.value]
-    newTodoUserId.value = ''
-    newTodoTitle.value = ''
-  } catch {
-    createError.value = mapError({ message: 'errorCreateTodoFailed' })
+  if (error.value || !data.value) {
+    createError.value = error.value
+    return
   }
+
+  todos.value = [{ ...data.value, id: Date.now(), userId, title, completed: false }, ...todos.value]
+  newTodoUserId.value = ''
+  newTodoTitle.value = ''
 }
 
 const logout = async () => {
@@ -138,7 +135,6 @@ onMounted(() => {
   }
 
   loadFavorites()
-  loadTodos()
 })
 </script>
 
