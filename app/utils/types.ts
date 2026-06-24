@@ -15,7 +15,7 @@ export interface ServiceResponse<T> {
 
 export interface RunAsyncOptions<T = any> {
   asyncOptions?: AsyncDataOptions<T>
-  errorOptions?: { fatal?: boolean }
+  errorOptions?: { fatal?: boolean; fallbackMessage?: string }
 }
 
 export interface BaseButtonProps {

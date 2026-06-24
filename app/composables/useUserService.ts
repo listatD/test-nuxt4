@@ -12,16 +12,17 @@ export const useUserService = () => {
 
   const handleError = (err: FetchError, options?: RunAsyncOptions): string => {
     const isFatal = options?.errorOptions?.fatal ?? false
+    const fallbackMessage = options?.errorOptions?.fallbackMessage
 
     if (isFatal) {
       throw createError({
         status: err?.status ?? 500,
-        message: err?.message,
+        message: err?.message || fallbackMessage,
         fatal: true
       })
     }
 
-    return mapError(err)
+    return mapError(fallbackMessage && !err?.message ? { ...err, message: fallbackMessage } : err)
   }
 
   const runTask = async <T>(
@@ -73,33 +74,33 @@ export const useUserService = () => {
 
   return {
     async getTodos(options?: RunAsyncOptions<JsonPlaceholderTodo[]>) {
-      return runAsyncData<JsonPlaceholderTodo[]>(
-        'todos',
-        async () => {
-          try {
-            return await nuxtApp.$apiBase<JsonPlaceholderTodo[]>('todos')
-          } catch {
-            throw { message: 'errorTodosLoadFailed' }
-          }
-        },
-        options
-      )
+      return runAsyncData<JsonPlaceholderTodo[]>('todos', () => nuxtApp.$apiBase('todos'), {
+        ...options,
+        errorOptions: {
+          ...options?.errorOptions,
+          fallbackMessage: 'errorTodosLoadFailed'
+        }
+      })
     },
 
     async postTodo(
       values: Pick<JsonPlaceholderTodo, 'userId' | 'title' | 'completed'>,
       options?: RunAsyncOptions<JsonPlaceholderTodo>
     ) {
-      return runTask<JsonPlaceholderTodo>(async () => {
-        try {
-          return await nuxtApp.$apiBase<JsonPlaceholderTodo>('todos', {
+      return runTask<JsonPlaceholderTodo>(
+        () =>
+          nuxtApp.$apiBase<JsonPlaceholderTodo>('todos', {
             method: 'POST',
             body: values
-          })
-        } catch {
-          throw { message: 'errorCreateTodoFailed' }
+          }),
+        {
+          ...options,
+          errorOptions: {
+            ...options?.errorOptions,
+            fallbackMessage: 'errorCreateTodoFailed'
+          }
         }
-      }, options)
+      )
     },
 
     async postLogin(values: LoginPayload, options?: RunAsyncOptions<JsonPlaceholderUser>) {
