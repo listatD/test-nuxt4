@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-brand-primary: 81 153 69;
+  --font-size-brand: 14px;
+  --line-height-brand: 1.286;
+}
+
+@layer base {
+  html {
+    font-size: var(--font-size-brand);
+    line-height: var(--line-height-brand);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html,
+  body {
+    @apply h-full overflow-hidden bg-slate-100 text-slate-600 m-0;
+  }
+}
+
+@layer components {
+  #app {
+    @apply h-full overflow-hidden overflow-y-auto relative;
+  }
+}

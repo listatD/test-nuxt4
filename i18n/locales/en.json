@@ -1,0 +1,13 @@
+{
+  "welcome": "Welcome",
+  "nav": {
+    "login": "Login",
+    "main": "Main"
+  },
+  "btn": {
+    "signIn": "Sign in"
+  },
+  "error": {
+    "errorDataLater": "Data processing error. Please try re-logging into the app or trying again later."
+  }
+}
