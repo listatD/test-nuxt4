@@ -209,11 +209,11 @@ onBeforeUnmount(() => {
   clearSearchDebounce()
 })
 
-const toggleFavorite = (todoId: number) => {
+const onToggleFavorite = (todoId: number) => {
   favoriteTodoStore.toggleFavoriteTodo(todoId)
 }
 
-const clearCreateError = () => {
+const onClearCreateError = () => {
   createError.value = ''
 }
 
@@ -229,7 +229,7 @@ watch(isCreateTodoModalOpen, value => {
   }
 })
 
-const addTodo = async () => {
+const onAddTodo = async () => {
   createError.value = ''
 
   const userId = Number(newTodoUserId.value)
@@ -256,7 +256,7 @@ const addTodo = async () => {
   isCreateTodoModalOpen.value = false
 }
 
-const logout = async () => {
+const onLogout = async () => {
   mainStore.setLogOut()
   await navigateTo(localePath(defAuthPage.login.name))
 }
@@ -266,13 +266,12 @@ onMounted(() => {
     navigateTo(localePath(defAuthPage.login.name))
     return
   }
-
 })
 </script>
 
 <template>
   <div class="flex flex-col gap-6">
-    <MainUserProfile :user="user" @logout="logout" />
+    <MainUserProfile :user="user" @logout="onLogout" />
 
     <MainTodoFilter
       v-model:status="statusFilter"
@@ -289,7 +288,7 @@ onMounted(() => {
       :favorite-ids="favoriteIds"
       :is-loading="isTodosLoading"
       :error="todosError"
-      @toggle-favorite="toggleFavorite"
+      @toggle-favorite="onToggleFavorite"
     />
 
     <BaseModal
@@ -301,8 +300,8 @@ onMounted(() => {
         v-model:user-id="newTodoUserId"
         v-model:title="newTodoTitle"
         :error="createError"
-        @change="clearCreateError"
-        @submit="addTodo"
+        @change="onClearCreateError"
+        @submit="onAddTodo"
       />
     </BaseModal>
   </div>
