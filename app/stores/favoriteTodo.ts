@@ -1,5 +1,13 @@
 export const useFavoriteTodoStore = defineStore('favoriteTodo', () => {
-  const favoriteTodoIds = useLocalStorage<number[]>('favoriteTodoIds', [])
+  const paramsCookie = {
+    maxAge: 60 * 60 * 24 * 365,
+    watch: true as const
+  }
+
+  const favoriteTodoIds = useCookie<number[]>('favoriteTodoIds', {
+    ...paramsCookie,
+    default: () => []
+  })
 
   const setFavoriteTodoIds = (ids: number[]) => {
     favoriteTodoIds.value = ids

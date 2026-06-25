@@ -266,6 +266,7 @@ onMounted(() => {
     navigateTo(localePath(defAuthPage.login.name))
     return
   }
+
 })
 </script>
 
