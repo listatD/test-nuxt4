@@ -5,8 +5,16 @@ const props = defineProps<Omit<BasePaginationProps, 'modelValue'>>()
 const model = defineModel<number>({ default: 1 })
 
 const totalPages = computed(() => Math.max(1, Math.ceil(props.totalItems / props.perPage)))
+const maxVisiblePages = computed(() => props.maxVisiblePages || defTodoPagination.visiblePages.val)
 
-const pages = computed(() => Array.from({ length: totalPages.value }, (_, index) => index + 1))
+const pages = computed(() => {
+  const visibleCount = Math.min(maxVisiblePages.value, totalPages.value)
+  const halfVisibleCount = Math.floor(visibleCount / 2)
+  const maxStart = Math.max(1, totalPages.value - visibleCount + 1)
+  const start = Math.min(Math.max(1, model.value - halfVisibleCount), maxStart)
+
+  return Array.from({ length: visibleCount }, (_, index) => start + index)
+})
 
 const setPage = (page: number) => {
   model.value = Math.min(Math.max(page, 1), totalPages.value)

@@ -70,6 +70,7 @@ export interface BasePaginationProps {
   modelValue: number
   totalItems: number
   perPage: number
+  maxVisiblePages?: number
 }
 
 export interface BaseCheckboxProps {

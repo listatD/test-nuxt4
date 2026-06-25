@@ -9,11 +9,7 @@ const mainStore = useMainStore()
 const userService = useUserService()
 const localePath = useLocalePath()
 const route = useRoute()
-const {
-  data: todosData,
-  pending: isTodosLoading,
-  error: todosError
-} = await userService.getTodos()
+const { data: todosData, pending: isTodosLoading, error: todosError } = await userService.getTodos()
 
 const getQueryValue = (value: unknown) => {
   if (Array.isArray(value)) {
@@ -34,16 +30,26 @@ const getQueryStatus = () => {
 
 const getQueryUser = () => getQueryValue(route.query.user) || 'all'
 const getQuerySearch = () => getQueryValue(route.query.search)
+const getQueryPage = () => {
+  const value = Number(getQueryValue(route.query.page))
+
+  return Number.isInteger(value) && value > 0 ? value : 1
+}
 
 const todos = ref<JsonPlaceholderTodo[]>(todosData.value || [])
 const favoriteIds = ref<number[]>([])
 const statusFilter = ref<TodoStatusFilter>(getQueryStatus())
 const userFilter = ref(getQueryUser())
+const searchInput = ref(getQuerySearch())
 const search = ref(getQuerySearch())
+const currentPage = ref(getQueryPage())
 const newTodoUserId = ref('')
 const newTodoTitle = ref('')
 const createError = ref('')
 const isCreateTodoModalOpen = ref(false)
+const isSyncingFromRoute = ref(false)
+const areFavoritesLoaded = ref(false)
+const searchDebounceTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const user = computed(() => mainStore.userInfo)
 
@@ -83,6 +89,10 @@ const filteredTodos = computed(() => {
   })
 })
 
+const isFavoritesLoading = computed(
+  () => statusFilter.value === defTodoStatusFilter.favorites.val && !areFavoritesLoaded.value
+)
+
 const loadFavorites = () => {
   if (!import.meta.client) return
 
@@ -91,6 +101,8 @@ const loadFavorites = () => {
     favoriteIds.value = saved ? JSON.parse(saved) : []
   } catch {
     favoriteIds.value = []
+  } finally {
+    areFavoritesLoaded.value = true
   }
 }
 
@@ -100,30 +112,14 @@ const saveFavorites = () => {
   window.localStorage.setItem('favoriteTodoIds', JSON.stringify(favoriteIds.value))
 }
 
-watch(todosData, value => {
-  todos.value = value || []
-})
+const clearSearchDebounce = () => {
+  if (!searchDebounceTimer.value) return
 
-watch(
-  () => route.query,
-  () => {
-    const nextStatus = getQueryStatus()
-    const nextUser = getQueryUser()
-    const nextSearch = getQuerySearch()
+  clearTimeout(searchDebounceTimer.value)
+  searchDebounceTimer.value = null
+}
 
-    if (statusFilter.value !== nextStatus) {
-      statusFilter.value = nextStatus
-    }
-    if (userFilter.value !== nextUser) {
-      userFilter.value = nextUser
-    }
-    if (search.value !== nextSearch) {
-      search.value = nextSearch
-    }
-  }
-)
-
-watch([statusFilter, userFilter, search], () => {
+const syncQuery = () => {
   if (!import.meta.client) return
 
   const query = { ...route.query }
@@ -147,7 +143,91 @@ watch([statusFilter, userFilter, search], () => {
     delete query.search
   }
 
+  if (currentPage.value > 1) {
+    query.page = String(currentPage.value)
+  } else {
+    delete query.page
+  }
+
   navigateTo({ path: route.path, query }, { replace: true })
+}
+
+const resetPageAndSyncQuery = () => {
+  if (currentPage.value !== 1) {
+    currentPage.value = 1
+    return
+  }
+
+  syncQuery()
+}
+
+watch(todosData, value => {
+  todos.value = value || []
+})
+
+watch(
+  () => route.query,
+  () => {
+    isSyncingFromRoute.value = true
+
+    const nextStatus = getQueryStatus()
+    const nextUser = getQueryUser()
+    const nextSearch = getQuerySearch()
+    const nextPage = getQueryPage()
+
+    clearSearchDebounce()
+
+    if (statusFilter.value !== nextStatus) {
+      statusFilter.value = nextStatus
+    }
+    if (userFilter.value !== nextUser) {
+      userFilter.value = nextUser
+    }
+    if (searchInput.value !== nextSearch) {
+      searchInput.value = nextSearch
+    }
+    if (search.value !== nextSearch) {
+      search.value = nextSearch
+    }
+    if (currentPage.value !== nextPage) {
+      currentPage.value = nextPage
+    }
+
+    nextTick(() => {
+      isSyncingFromRoute.value = false
+    })
+  }
+)
+
+watch([statusFilter, userFilter], () => {
+  if (isSyncingFromRoute.value) return
+
+  resetPageAndSyncQuery()
+})
+
+watch(searchInput, value => {
+  if (isSyncingFromRoute.value) return
+
+  clearSearchDebounce()
+  searchDebounceTimer.value = setTimeout(() => {
+    search.value = value
+  }, defTodoSearch.debounceMs.val)
+})
+
+watch(search, () => {
+  if (isSyncingFromRoute.value) return
+
+  resetPageAndSyncQuery()
+})
+
+watch(currentPage, () => {
+  if (isSyncingFromRoute.value) return
+
+  syncQuery()
+})
+
+onBeforeUnmount(() => {
+  clearSearchDebounce()
 })
 
 const toggleFavorite = (todoId: number) => {
@@ -156,6 +236,10 @@ const toggleFavorite = (todoId: number) => {
     : [...favoriteIds.value, todoId]
 
   saveFavorites()
+}
+
+const clearCreateError = () => {
+  createError.value = ''
 }
 
 const addTodo = async () => {
@@ -180,7 +264,7 @@ const addTodo = async () => {
     return
   }
 
-  todos.value = [{ ...data.value, id: Date.now(), userId, title, completed: false }, ...todos.value]
+  todos.value = [data.value, ...todos.value]
   newTodoUserId.value = ''
   newTodoTitle.value = ''
   isCreateTodoModalOpen.value = false
@@ -208,25 +292,31 @@ onMounted(() => {
     <MainTodoFilter
       v-model:status="statusFilter"
       v-model:user="userFilter"
-      v-model:search="search"
+      v-model:search="searchInput"
       :status-options="statusOptions"
       :user-options="userOptions"
       @create="isCreateTodoModalOpen = true"
     />
 
     <MainTodoList
+      v-model:page="currentPage"
       :todos="filteredTodos"
       :favorite-ids="favoriteIds"
-      :is-loading="isTodosLoading"
+      :is-loading="isTodosLoading || isFavoritesLoading"
       :error="todosError"
       @toggle-favorite="toggleFavorite"
     />
 
-    <BaseModal v-model="isCreateTodoModalOpen" :title="$t('page.createTodo')" width-class="max-w-md">
+    <BaseModal
+      v-model="isCreateTodoModalOpen"
+      :title="$t('page.createTodo')"
+      width-class="max-w-md"
+    >
       <MainCreateTodo
         v-model:user-id="newTodoUserId"
         v-model:title="newTodoTitle"
         :error="createError"
+        @change="clearCreateError"
         @submit="addTodo"
       />
     </BaseModal>

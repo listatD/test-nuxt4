@@ -4,11 +4,31 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
+  change: []
   submit: []
 }>()
 
-const userId = defineModel<string>('userId', { default: '' })
+const userId = defineModel<string | number>('userId', { default: '' })
 const title = defineModel<string>('title', { default: '' })
+
+const normalizeUserId = () => {
+  const value = Number(userId.value)
+
+  if (!userId.value || Number.isNaN(value)) return
+
+  userId.value = value > 0 ? value : ''
+}
+
+const onUserIdKeydown = (event: KeyboardEvent) => {
+  if (['-', '+', 'e', 'E'].includes(event.key)) {
+    event.preventDefault()
+  }
+}
+
+const onUserIdInput = () => {
+  normalizeUserId()
+  emit('change')
+}
 </script>
 
 <template>
@@ -20,7 +40,12 @@ const title = defineModel<string>('title', { default: '' })
         :label="$t('label.userId')"
         id="create-todo-user-id"
         name="userId"
+        min="1"
+        step="1"
         size="md"
+        @keydown="onUserIdKeydown"
+        @input="onUserIdInput"
+        @blur="normalizeUserId"
       />
       <BaseInput
         v-model="title"
@@ -29,9 +54,10 @@ const title = defineModel<string>('title', { default: '' })
         id="create-todo-title"
         name="title"
         size="md"
+        @input="emit('change')"
       />
+      <BaseAlert type="error" :show="!!error" :message="error ? $t(error) : ''" />
       <BaseButton type="submit">{{ $t('btn.add') }}</BaseButton>
     </form>
-    <p v-if="error" class="m-0 font-semibold text-[#b42318]">{{ $t(error) }}</p>
   </div>
 </template>

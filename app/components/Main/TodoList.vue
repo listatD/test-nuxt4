@@ -12,13 +12,15 @@ const emit = defineEmits<{
   toggleFavorite: [todoId: number]
 }>()
 
+const currentPage = defineModel<number>('page', { default: 1 })
+
 const panelClass = 'rounded-lg border border-slate-200 bg-white p-4 sm:p-6'
 const titleClass = 'm-0 text-2xl font-bold leading-tight text-slate-900'
 const eyebrowClass = 'mb-1.5 mt-0 text-xs font-bold uppercase tracking-[0.08em] text-slate-500'
-const currentPage = ref(1)
 const perPage = defTodoPagination.perPage.val
 
 const showPagination = computed(() => props.todos.length > perPage)
+const totalPages = computed(() => Math.max(1, Math.ceil(props.todos.length / perPage)))
 
 const paginatedTodos = computed(() => {
   const start = (currentPage.value - 1) * perPage
@@ -27,9 +29,9 @@ const paginatedTodos = computed(() => {
 })
 
 watch(
-  () => props.todos,
+  [() => props.todos.length, totalPages],
   () => {
-    currentPage.value = 1
+    currentPage.value = Math.min(Math.max(currentPage.value, 1), totalPages.value)
   }
 )
 </script>
@@ -43,7 +45,13 @@ watch(
       </div>
     </div>
 
-    <p v-if="isLoading" class="m-0 font-semibold">{{ $t('state.loadingTodos') }}</p>
+    <div v-if="isLoading" class="flex min-h-[220px] items-center justify-center">
+      <div
+        class="h-16 w-16 animate-spin rounded-full border-4 border-brand-primary/30 border-t-brand-primary"
+        role="status"
+        :aria-label="$t('state.loadingTodos')"
+      />
+    </div>
     <p v-else-if="error" class="m-0 font-semibold text-[#b42318]">
       {{ $t(error) }}
     </p>
@@ -99,6 +107,7 @@ watch(
         v-model="currentPage"
         :total-items="todos.length"
         :per-page="perPage"
+        :max-visible-pages="defTodoPagination.visiblePages.val"
       />
     </div>
   </section>

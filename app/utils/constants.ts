@@ -51,7 +51,12 @@ export const defTodoStatusFilter = {
 } as const
 
 export const defTodoPagination = {
-  perPage: { val: 10 }
+  perPage: { val: 10 },
+  visiblePages: { val: 5 }
+} as const
+
+export const defTodoSearch = {
+  debounceMs: { val: 300 }
 } as const
 
 export const defRegex = {
