@@ -6,6 +6,7 @@ definePageMeta({
 })
 
 const mainStore = useMainStore()
+const favoriteTodoStore = useFavoriteTodoStore()
 const userService = useUserService()
 const localePath = useLocalePath()
 const route = useRoute()
@@ -38,7 +39,6 @@ const getQueryPage = () => {
 }
 
 const todos = ref<JsonPlaceholderTodo[]>(todosData.value || [])
-const favoriteIds = ref<number[]>([])
 const statusFilter = ref<TodoStatusFilter>(getQueryStatus())
 const userFilter = ref<TodoUserFilter | string>(getQueryUser())
 const searchInput = ref(getQuerySearch())
@@ -49,10 +49,10 @@ const newTodoTitle = ref('')
 const createError = ref('')
 const isCreateTodoModalOpen = ref(false)
 const isSyncingFromRoute = ref(false)
-const areFavoritesLoaded = ref(false)
 const searchDebounceTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const user = computed(() => mainStore.userInfo)
+const favoriteIds = computed(() => favoriteTodoStore.favoriteTodoIds)
 
 const availableUserIds = computed(() =>
   [...new Set(todos.value.map(todo => todo.userId))].sort((a, b) => a - b)
@@ -90,29 +90,6 @@ const filteredTodos = computed(() => {
     return matchesStatus && matchesUser && matchesSearch
   })
 })
-
-const isFavoritesLoading = computed(
-  () => statusFilter.value === defTodoStatusFilter.favorites.val && !areFavoritesLoaded.value
-)
-
-const loadFavorites = () => {
-  if (!import.meta.client) return
-
-  try {
-    const saved = window.localStorage.getItem('favoriteTodoIds')
-    favoriteIds.value = saved ? JSON.parse(saved) : []
-  } catch {
-    favoriteIds.value = []
-  } finally {
-    areFavoritesLoaded.value = true
-  }
-}
-
-const saveFavorites = () => {
-  if (!import.meta.client) return
-
-  window.localStorage.setItem('favoriteTodoIds', JSON.stringify(favoriteIds.value))
-}
 
 const clearSearchDebounce = () => {
   if (!searchDebounceTimer.value) return
@@ -233,11 +210,7 @@ onBeforeUnmount(() => {
 })
 
 const toggleFavorite = (todoId: number) => {
-  favoriteIds.value = favoriteIds.value.includes(todoId)
-    ? favoriteIds.value.filter(id => id !== todoId)
-    : [...favoriteIds.value, todoId]
-
-  saveFavorites()
+  favoriteTodoStore.toggleFavoriteTodo(todoId)
 }
 
 const clearCreateError = () => {
@@ -293,8 +266,6 @@ onMounted(() => {
     navigateTo(localePath(defAuthPage.login.name))
     return
   }
-
-  loadFavorites()
 })
 </script>
 
@@ -315,7 +286,7 @@ onMounted(() => {
       v-model:page="currentPage"
       :todos="filteredTodos"
       :favorite-ids="favoriteIds"
-      :is-loading="isTodosLoading || isFavoritesLoading"
+      :is-loading="isTodosLoading"
       :error="todosError"
       @toggle-favorite="toggleFavorite"
     />
