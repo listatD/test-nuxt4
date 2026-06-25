@@ -21,7 +21,7 @@ export default defineNuxtPlugin(() => {
 
   const isRefreshRequest = (request: string) => request.includes('/refresh')
 
-  const isAuthRequest = (request: string) => request.includes('/auth/login')
+  const isAuthRequest = (request: string) => request.includes('/login')
 
   const refreshTokens = async () => {
     if (!mainStore.refreshToken) {
@@ -57,11 +57,7 @@ export default defineNuxtPlugin(() => {
     }
   })
 
-  const apiBase = async <T>(
-    request: string,
-    options?: any,
-    hasRetried = false
-  ): Promise<T> => {
+  const apiBase = async <T>(request: string, options?: any, hasRetried = false): Promise<T> => {
     try {
       return await customApiFetch<T>(request, options)
     } catch (error: any) {

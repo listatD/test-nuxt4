@@ -242,6 +242,18 @@ const clearCreateError = () => {
   createError.value = ''
 }
 
+const resetCreateTodoForm = () => {
+  newTodoUserId.value = ''
+  newTodoTitle.value = ''
+  createError.value = ''
+}
+
+watch(isCreateTodoModalOpen, value => {
+  if (!value) {
+    resetCreateTodoForm()
+  }
+})
+
 const addTodo = async () => {
   createError.value = ''
 
@@ -265,8 +277,7 @@ const addTodo = async () => {
   }
 
   todos.value = [data.value, ...todos.value]
-  newTodoUserId.value = ''
-  newTodoTitle.value = ''
+  resetCreateTodoForm()
   isCreateTodoModalOpen.value = false
 }
 
