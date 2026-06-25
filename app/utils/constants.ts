@@ -50,6 +50,10 @@ export const defTodoStatusFilter = {
   favorites: { val: 'favorites' }
 } as const
 
+export const defTodoUserFilter = {
+  all: { val: 'all' }
+} as const
+
 export const defTodoPagination = {
   perPage: { val: 10 },
   visiblePages: { val: 5 }

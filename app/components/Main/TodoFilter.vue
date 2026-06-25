@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BaseSelectOption, TodoStatusFilter } from '@/utils/types'
+import type { BaseSelectOption, TodoStatusFilter, TodoUserFilter } from '@/utils/types'
 
 defineProps<{
   statusOptions: BaseSelectOption[]
@@ -7,7 +7,7 @@ defineProps<{
 }>()
 
 const status = defineModel<TodoStatusFilter>('status', { default: defTodoStatusFilter.all.val })
-const user = defineModel<string>('user', { default: 'all' })
+const user = defineModel<TodoUserFilter | string>('user', { default: defTodoUserFilter.all.val })
 const search = defineModel<string>('search', { default: '' })
 
 const emit = defineEmits<{

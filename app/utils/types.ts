@@ -178,3 +178,5 @@ export interface JsonPlaceholderTodo {
 
 export type TodoStatusFilter =
   (typeof defTodoStatusFilter)[keyof typeof defTodoStatusFilter]['val']
+
+export type TodoUserFilter = (typeof defTodoUserFilter)[keyof typeof defTodoUserFilter]['val']

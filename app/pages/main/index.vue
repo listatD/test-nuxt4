@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { JsonPlaceholderTodo, TodoStatusFilter } from '@/utils/types'
+import type { JsonPlaceholderTodo, TodoStatusFilter, TodoUserFilter } from '@/utils/types'
 
 definePageMeta({
   public: false
@@ -28,7 +28,8 @@ const getQueryStatus = () => {
   return isTodoStatusFilter(value) ? value : defTodoStatusFilter.all.val
 }
 
-const getQueryUser = () => getQueryValue(route.query.user) || 'all'
+const getQueryUser = (): TodoUserFilter | string =>
+  getQueryValue(route.query.user) || defTodoUserFilter.all.val
 const getQuerySearch = () => getQueryValue(route.query.search)
 const getQueryPage = () => {
   const value = Number(getQueryValue(route.query.page))
@@ -39,7 +40,7 @@ const getQueryPage = () => {
 const todos = ref<JsonPlaceholderTodo[]>(todosData.value || [])
 const favoriteIds = ref<number[]>([])
 const statusFilter = ref<TodoStatusFilter>(getQueryStatus())
-const userFilter = ref(getQueryUser())
+const userFilter = ref<TodoUserFilter | string>(getQueryUser())
 const searchInput = ref(getQuerySearch())
 const search = ref(getQuerySearch())
 const currentPage = ref(getQueryPage())
@@ -67,7 +68,7 @@ const statusOptions = computed(() => [
 ])
 
 const userOptions = computed(() => [
-  { label: t('filter.allUsers'), value: 'all' },
+  { label: t('filter.allUsers'), value: defTodoUserFilter.all.val },
   ...availableUserIds.value.map(userId => ({ label: String(userId), value: String(userId) }))
 ])
 
@@ -82,7 +83,8 @@ const filteredTodos = computed(() => {
       (statusFilter.value === defTodoStatusFilter.favorites.val &&
         favoriteIds.value.includes(todo.id))
 
-    const matchesUser = userFilter.value === 'all' || todo.userId === Number(userFilter.value)
+    const matchesUser =
+      userFilter.value === defTodoUserFilter.all.val || todo.userId === Number(userFilter.value)
     const matchesSearch = !query || todo.title.toLowerCase().includes(query)
 
     return matchesStatus && matchesUser && matchesSearch
@@ -130,7 +132,7 @@ const syncQuery = () => {
     query.status = statusFilter.value
   }
 
-  if (userFilter.value === 'all') {
+  if (userFilter.value === defTodoUserFilter.all.val) {
     delete query.user
   } else {
     query.user = userFilter.value
