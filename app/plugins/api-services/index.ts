@@ -9,11 +9,42 @@ export default defineNuxtPlugin(() => {
     return navigateTo(localePath(defAuthPage.login.name), { replace: true })
   }
 
-  const useUnauthorized = async () => {
+  const useUnauthorized = async (): Promise<never> => {
     await useLogOut()
-    if (import.meta.client) {
-      throw createError({ status: defHttpStatus.s401, message: 'Unauthorized' })
+    throw createError({ status: defHttpStatus.s401, message: 'Unauthorized' })
+  }
+
+  const getErrorStatus = (error: any) =>
+    error?.response?.status || error?.status || error?.statusCode || defHttpStatus.s500
+
+  const getErrorData = (error: any) => error?.response?._data || error?.data
+
+  const isRefreshRequest = (request: string) => request.includes('/refresh')
+
+  const isAuthRequest = (request: string) => request.includes('/auth/login')
+
+  const refreshTokens = async () => {
+    if (!mainStore.refreshToken) {
+      return await useUnauthorized()
     }
+
+    if (!refreshPromise) {
+      refreshPromise = $fetch<{ token: string; rt: string }>(`${config.public.apiBase}/refresh`, {
+        method: 'POST',
+        body: { refreshToken: mainStore.refreshToken }
+      }).finally(() => {
+        refreshPromise = null
+      })
+    }
+
+    const refreshRes = await refreshPromise
+
+    mainStore.setAccessToken({
+      token: refreshRes.token,
+      rt: refreshRes.rt
+    })
+
+    return refreshRes
   }
 
   const customApiFetch = $fetch.create({
@@ -23,72 +54,44 @@ export default defineNuxtPlugin(() => {
       if (mainStore.accessToken) {
         options.headers.set('Authorization', `Bearer ${mainStore.accessToken}`)
       }
-    },
-    async onResponseError({ request, response, options }) {
-      const status = response.status
-      const requestUrl = request.toString()
-
-      const isRefreshRequest = requestUrl.includes('/auth/refresh')
-      const isAuthRequest = requestUrl.includes('/auth/login')
-
-      if (status === defHttpStatus.s401) {
-        if (isRefreshRequest || isAuthRequest) {
-          await useLogOut()
-          return
-        }
-
-        if (mainStore.refreshToken) {
-          try {
-            if (!refreshPromise) {
-              refreshPromise = $fetch<{ token: string; rt: string }>(
-                `${config.public.apiBase}/auth/refresh`,
-                {
-                  method: 'POST',
-                  body: { refreshToken: mainStore.refreshToken }
-                }
-              ).finally(() => {
-                refreshPromise = null
-              })
-            }
-
-            const refreshRes = await refreshPromise
-
-            mainStore.setAccessToken({
-              token: refreshRes.token,
-              rt: refreshRes.rt
-            })
-
-            const headers = new Headers(options.headers)
-            headers.set('Authorization', `Bearer ${refreshRes.token}`)
-
-            return $fetch(
-              request as string,
-              {
-                ...options,
-                method: options.method as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
-                headers: Object.fromEntries(headers.entries())
-              } as any
-            )
-          } catch {
-            await useUnauthorized()
-            return
-          }
-        }
-
-        await useUnauthorized()
-        return
-      }
-      throw createError({
-        status: response.status,
-        data: response._data,
-        message: response._data?.error || response._data?.message || 'error.unknown'
-      })
     }
   })
 
+  const apiBase = async <T>(
+    request: string,
+    options?: any,
+    hasRetried = false
+  ): Promise<T> => {
+    try {
+      return await customApiFetch<T>(request, options)
+    } catch (error: any) {
+      const status = getErrorStatus(error)
+      const data = getErrorData(error)
+
+      if (status !== defHttpStatus.s401) {
+        throw createError({
+          status,
+          data,
+          message: data?.error || data?.message || error?.message || 'error.unknown'
+        })
+      }
+
+      if (hasRetried || isRefreshRequest(request) || isAuthRequest(request)) {
+        return await useUnauthorized()
+      }
+
+      try {
+        await refreshTokens()
+        return await apiBase<T>(request, options, true)
+      } catch {
+        return await useUnauthorized()
+      }
+    }
+  }
+
   return {
     provide: {
-      apiBase: customApiFetch
+      apiBase
     }
   }
 })
